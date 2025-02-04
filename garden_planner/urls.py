@@ -14,6 +14,7 @@ urlpatterns = [
     #path("add_crop", views.add_crop, name="add_crop"),
     path("update_crop/<id>", views.update_crop, name="update_crop"),
     path("delete_crop/<id>", views.delete_crop, name="delete_crop"),
+    path("plant_crop/<id>", views.plant_crop, name="plant_crop"),
 
     #path("", views.plant_index, name="plant_index"),
     #path("add_plant/<id>", views.add_plant, name="add_plant"),

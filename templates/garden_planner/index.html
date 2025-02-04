@@ -21,7 +21,43 @@
             'excel'
         ]
   } );
+
+  $('#gardens').dataTable( {
+    "columnDefs": [
+      { "sorting": false, "targets": 0 }
+    ],
+    pageLength: 100,
+    buttons: [
+            'excel'
+        ]
+  } );
 </script>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', 
+        events: [
+            {% for task in tasks %}
+            {
+                id: '{{task.id}}',
+                title: '{{task.title}}',
+                {% if task.done_on %}
+                    start: '{{task.get_date}}'
+                {% else %}
+                    start: '{{task.get_date}}'
+                {% endif %}
+            },
+            {% endfor  %}
+        ]
+      });
+      calendar.render();
+    });
+
+  </script>
+
 {% endblock %}
 
 {% block content %}
@@ -30,28 +66,80 @@
         <h1>Garden Planner</h1>
     </center>
 
-
-    <!-- https://getbootstrap.com/docs/5.3/components/modal/ -->
+    <center>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#gardenModal">
+        Add Garden Group
+    </button>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cropModal">
         Add Crop
     </button>
-    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#plantModal">
+    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#plantModal">
         Add Plant
     </button>
+    </center>
 
     <br><br>
     <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <button class="nav-link active" id="nav-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-crop" type="button" role="tab" aria-controls="nav-crop" aria-selected="true">Crop</button>
+            <button class="nav-link active" id="nav-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-cal" type="button" role="tab" aria-controls="nav-crop" aria-selected="true">Calendar</button>
+            <button class="nav-link" id="nav-garden-tab" data-bs-toggle="tab" data-bs-target="#nav-garden" type="button" role="tab" aria-controls="nav-garden" aria-selected="true">Gardens</button>
+            <button class="nav-link" id="nav-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-crop" type="button" role="tab" aria-controls="nav-crop" aria-selected="true">Crop</button>
             <button class="nav-link" id="nav-plant-tab" data-bs-toggle="tab" data-bs-target="#nav-plant" type="button" role="tab" aria-controls="nav-plant" aria-selected="false">Plant</button>
             <button class="nav-link" id="nav-excel-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-excel-crop" type="button" role="tab" aria-controls="nav-excel-crop" aria-selected="false">Import Crops from Spreadsheet</button>
         </div>
     </nav>
     <div class="tab-content" id="nav-tabContent">
-        <div class="tab-pane fade show active" id="nav-crop" role="tabpanel" aria-labelledby="nav-crop-tab">
+        <div class="tab-pane fade show active" id="nav-cal" role="tabpanel" aria-labelledby="nav-crop-tab">
+            <br>
+            <div class="row">
+                <div class="col" style="width:50%">
+                    <div id='calendar'></div>
+                </div>
+                <div class="col" style="width:50%">
+                    <h3>Tasks</h3>
+                    {% for task in tasks %}
+                        <form method="post">
+                            {% csrf_token %}
+                            {% if task.done %}
+                            <button type="submit" name="task-id" value="{{task.id}}"></button>
+                            </button>
+                            <strike><a href="{% url 'update_plant' task.plant.id %}"></a>{{ task.title }}</a></strike>, Done on: {{ task.done_on }}
+                            {% else %}
+                            <button type="submit" name="task-id" value="{{task.id}}"></button>
+                            <a href="{% url 'update_plant' task.plant.id %}">{{ task.title }}</a>, Complete on: {{ task.complete_on }}
+                            {% endif %}
+                        </form>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-garden" role="tabpanel" aria-labelledby="nav-garden-tab">
+            <table id="gardens" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Plants</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for garden in gardens %}
+                    <tr>
+                        <td> {{ garden }} </td>
+                        <td> 
+                            {% for plant in garden.plant_set.all %}
+                                {{ plant }}, {{plant.qty}}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="nav-crop" role="tabpanel" aria-labelledby="nav-crop-tab">
             <table id="crops" class="display" style="width:100%">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Name</th>
                         <th>Variety</th>
                         <th>Source</th>
@@ -69,6 +157,7 @@
                 <tbody>
                     {% for crop in crops %}
                     <tr>
+                        <td><a class="btn btn-secondary" href="{% url 'plant_crop' crop.id %}">Plant Crop</a></td>
                         <td><a href="{% url 'update_crop' crop.id %}">{{ crop.name }}</a></td>
                         <td> {{ crop.variety }} </td>
                         <td> {{ crop.source }} </td>
@@ -134,6 +223,33 @@
     
     
     <!-- Modal -->
+    <div class="modal fade" id="gardenModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="cropModalLabel">Add New Garden Group</h1><br>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_garden" value="True">
+
+                    <div class="row">
+                        <div class="col">Name
+                            <input type="text" class="form-control" name="garden-name" style="width: 100%" required>
+                        </div>
+                    </div>
+
+                    <br><br>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input class="btn btn-primary" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
         <div class="modal-dialog">
         <div class="modal-content">
@@ -203,6 +319,20 @@
                                 <input class="form-control" type="date" id="crop-seed" name=name="crop-target_seed_start_outdoors">
                             </div>
                         </div>
+
+                        <br>
+                        <br><strong>Create Task?</strong> Creating a task will add dates to your calendar.<br>
+                        <div class="form-check" name="create_task">
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="create_task" value="Y">Yes</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="create_task" value="N">No</input>
+                                </div>
+                            </div>
+                        </div>
+                        
 
                         <br>
                         <div class="row">
@@ -354,11 +484,20 @@
                         
                         
                         <br>
-                        <div class="row">
-                            <div class="col">Location
-                                <input type="text" class="form-control" name="plant-location" style="width: 100%">
+                        Location: <br>
+                        {% if gardens %}
+                        <div class="form-check" name="garden">
+                                {% for garden in gardens %}
+                                <div class="row">
+                                    <div class="col">
+                                        <input class="form-check-input" type="radio" name="plant-location" value="{{garden.id}}">{{garden.name}}</input>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
-                        </div>
+                        {% else %}
+                            <i>No gardens in list, please add a garden to plant in a location.</i>
+                        {% endif %}
 
                         <br>Planting Options<br>
                         <div class="form-check" name="planting_op">

@@ -5,4 +5,6 @@ from .models import *
 
 
 admin.site.register(Crop)
+admin.site.register(GardenGroup)
 admin.site.register(Plant)
+admin.site.register(Task)

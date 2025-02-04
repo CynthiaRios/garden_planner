@@ -3,8 +3,8 @@
 {% block content %}
 <body style="padding:5%"> 
     <center>
-        <h1>Edit {{crop.name}} Plant</h1>
-        <a class="btn btn-danger" href="{% url 'delete_plant' plant.id %}">Delete Plant</a>
+        <h1>Plant {{plant_crop.name}}</h1>
+        <a href="{% url 'crop_index' %}">Back to Index</a>
     </center>
 
     <p>A plant is a specific crop you plan to plant or are tracking in your garden.</p>
@@ -19,7 +19,7 @@
                 {% for crop in crops %}
                 <div class="row">
                     <div class="col">
-                        {% if plant.crop == crop %}
+                        {% if crop == plant_crop %}
                             <input class="form-check-input" type="radio" name="crop-id" value="{{crop.id}}" checked>{{crop.name}}</input>
                         {% else %}
                             <input class="form-check-input" type="radio" name="crop-id" value="{{crop.id}}">{{crop.name}}</input>
@@ -43,7 +43,7 @@
             
             Quantity<br>
             <div class="input-group">
-                <input type="number" step="1" class="form-control" name="plant-qty" value="{{plant.qty}}"></input>
+                <input type="number" step="1" class="form-control" name="plant-qty" value="1"></input>
             </div>
 
             <br>
@@ -65,6 +65,18 @@
             </div>
 
             <br>
+            <br><strong>Create Task?</strong> Creating a task will add dates to your calendar.<br>
+            <div class="form-check" name="create_task">
+                <div class="row">
+                    <div class="col">
+                        <input class="form-check-input" type="radio" name="create_task" value="Y">Yes</input>
+                    </div>
+                    <div class="col">
+                        <input class="form-check-input" type="radio" name="create_task" value="N">No</input>
+                    </div>
+                </div>
+            </div>
+
 
             <br>
             <div class="row">
@@ -98,17 +110,17 @@
 
             <br>
             <br>Planting Options<br>
-            <div class="form-check" name="planting_op" value={{plant.planting_op}}>
+            <div class="form-check" name="planting_op" value={{planting_op}}>
                 <div class="row">
                     <div class="col">
-                        {% if plant.planting_op == "1" %}
+                        {% if planting_op == "1" %}
                             <input class="form-check-input" type="radio" name="plant-planting_op" value="1" checked>Direct Sow</input>
                         {% else %}
                             <input class="form-check-input" type="radio" name="plant-planting_op" value="1">Direct Sow</input>
                         {% endif %}
                     </div>
                     <div class="col">
-                        {% if plant.planting_op == "2" %}
+                        {% if planting_op == "2" %}
                             <input class="form-check-input" type="radio" name="plant-planting_op" value="2" checked>Indoor Start</input>
                         {% else %}
                             <input class="form-check-input" type="radio" name="plant-planting_op" value="2">Indoor Start</input>
@@ -120,7 +132,7 @@
         </div>
 
         <br><br>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a class="btn btn-secondary" href="{% url 'crop_index' %}">Cancel</a>
         <input class="btn btn-primary" type="submit" value="Submit">
     </form>
             

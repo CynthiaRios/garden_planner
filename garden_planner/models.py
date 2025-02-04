@@ -6,6 +6,13 @@ class PlantingOp(models.TextChoices):
     D = "1", "Direct Sow"
     I = "2", "Indoor Start"
     
+class GardenGroup(models.Model): 
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 # Crop: Model to describe the different crops that can be planted
 class Crop(models.Model):
     class Season(models.TextChoices):
@@ -73,7 +80,34 @@ class Plant(models.Model):
         null = True, 
         blank = True
     )
-    location = models.CharField(max_length=100, null=True, blank=True)
+
+    # change 
+    location = models.ForeignKey(GardenGroup, null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.crop.name)
+
+
+class Task(models.Model):
+    # Format can be: Plant {CROP NAME} {Planting Option}
+    title = models.CharField(max_length=200)
+ 
+    done = models.BooleanField(default=False)
+    done_on = models.DateField(null=True, blank=True)
+
+    # default to appropriate dates 
+    complete_on = models.DateField(null=True, blank=True)
+
+    plant = models.ForeignKey(Plant, on_delete=models.CASCADE)
+
+    #garden = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+
+    def get_date(self): 
+        if self.done_on: 
+            return self.done_on.strftime("%Y-%m-%d")
+        if self.complete_on: 
+            return self.complete_on.strftime("%Y-%m-%d")
+        return None
