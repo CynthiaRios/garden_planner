@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body style="padding:5%"> 
+    <center>
+        <h1>Edit {{crop.name}}</h1>
+        <a class="btn btn-danger" href="{% url 'delete_crop' crop.id %}">Delete Crop</a>
+    </center>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col">Name
+                <input type="text" class="form-control" name="crop-name" style="width: 100%" value={{crop.name}} required>
+            </div>
+        </div>
+
+        <br>
+        <button class="btn btn-outline-primary" style="width:100%" type="button" data-bs-toggle="collapse" data-bs-target="#opt-crop" aria-expanded="false" aria-controls="collapseExample">
+            Optional Fields
+        </button>
+
+        
+        <div class="collapse" id="opt-crop">
+            <br>
+            <div class="row">
+                <div class="col">Variety
+                    <input type="text" class="form-control" name="crop-variety" style="width: 100%" value={{crop.variety}}>
+                </div>
+            </div>
+
+            <br>
+            <div class="row">
+                <div class="col">Source
+                    <input type="text" class="form-control" name="crop-source" style="width: 100%" value={{crop.source}}>
+                </div>
+            </div>
+            
+            <br>
+            <div class="row">
+                <div class="col">
+                    Target Date to Seed Start Indoors<br>
+                    <input class="form-control" type="date" id="crop-target_seed_start" name="crop-target_seed_start" value="{{target_seed_start}}">
+                </div>
+
+                <div class="col">
+                    Target Date to Transplant<br>
+                    <input class="form-control" type="date" id="crop-target_transport_start"" name="crop-target_transport_start" value="{{target_transport_start}}">
+                </div>
+            
+                <div class="col">
+                    Target Date to Plant Outdoors<br>
+                    <input class="form-control" type="date" id="crop-target_seed_start_outdoors" name="crop-target_seed_start_outdoors" value="{{target_seed_start_outdoors}}">
+                </div>
+            </div>
+
+            <br>
+            <div class="row">
+                <div class="col">Instruction
+                    <input type="text" class="form-control" name="crop-instruction" style="width: 100%" value={{crop.instructions}}>
+                </div>
+            </div>
+
+            <br>
+            Season<br>
+            <div class="form-check" name="season">
+                <div class="row">
+                    <div class="col">
+                        {% if crop.season == "1" %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="1">Spring</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="1" checked>Spring</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "2" %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="2">Summer</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="2" checked>Summer</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "3" %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="3">Fall</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="3" checked>Fall</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "4" %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="4">Winter</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-season" value="4" checked>Winter</input>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <br>Sunlight<br>
+            <div class="form-check" name="sunlight">
+                <div class="row">
+                    <div class="col">
+                        {% if crop.season == "1" %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="1" checked>Full Sun</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="1">Full Sun</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "2" %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="2" checked>Part Sun</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="2">Part Sun</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "3" %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="3" checked>Part Shade</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="3">Part Shade</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "4" %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="4" checked>Full Shade</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="4">Full Shade</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.season == "5" %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="5" checked>Dense Shade</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-sunlight" value="5">Dense Shade</input>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <br>Planting Options<br>
+            <div class="form-check" name="planting_op" value={{crop.planting_op}}>
+                <div class="row">
+                    <div class="col">
+                        {% if crop.planting_op == "1" %}
+                            <input class="form-check-input" type="radio" name="crop-planting_op" value="1" checked>Direct Sow</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-planting_op" value="1">Direct Sow</input>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {% if crop.planting_op == "2" %}
+                            <input class="form-check-input" type="radio" name="crop-planting_op" value="2" checked>Indoor Start</input>
+                        {% else %}
+                            <input class="form-check-input" type="radio" name="crop-planting_op" value="2">Indoor Start</input>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <br>Square Footage Needed<br>
+            <div class="input-group">
+                <input type="number" step=".01" class="form-control" name="crop-square_footage_needed" value="{{crop.square_footage_needed}}"></input>
+            </div>
+
+            <br>Seed Quantity per Square Foot<br>
+            <div class="input-group">
+                <input type="number" step="1" class="form-control" name="crop-qty_per_square_foot" value="{{crop.qty_per_square_foot}}"></input>
+            </div>
+            
+        </div>
+
+        <br><br>
+        <input class="btn btn-primary" type="submit" value="Submit">
+    </form>
+            
+</body>
+{% endblock content %}

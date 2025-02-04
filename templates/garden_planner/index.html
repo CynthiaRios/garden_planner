@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block extrascripts %}
+<script type="text/javascript">
+  $('#crops').dataTable( {
+    "columnDefs": [
+      { "sorting": false, "targets": 0 }
+    ],
+    pageLength: 100,
+    buttons: [
+            'excel'
+        ]
+  } );
+
+  $('#plants').dataTable( {
+    "columnDefs": [
+      { "sorting": false, "targets": 0 }
+    ],
+    pageLength: 100,
+    buttons: [
+            'excel'
+        ]
+  } );
+</script>
+{% endblock %}
+
+{% block content %}
+<body style="padding:5%"> 
+    <center>
+        <h1>Garden Planner</h1>
+    </center>
+
+
+    <!-- https://getbootstrap.com/docs/5.3/components/modal/ -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cropModal">
+        Add Crop
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#plantModal">
+        Add Plant
+    </button>
+
+    <br><br>
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-crop" type="button" role="tab" aria-controls="nav-crop" aria-selected="true">Crop</button>
+            <button class="nav-link" id="nav-plant-tab" data-bs-toggle="tab" data-bs-target="#nav-plant" type="button" role="tab" aria-controls="nav-plant" aria-selected="false">Plant</button>
+            <button class="nav-link" id="nav-excel-crop-tab" data-bs-toggle="tab" data-bs-target="#nav-excel-crop" type="button" role="tab" aria-controls="nav-excel-crop" aria-selected="false">Import Crops from Spreadsheet</button>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-crop" role="tabpanel" aria-labelledby="nav-crop-tab">
+            <table id="crops" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Variety</th>
+                        <th>Source</th>
+                        <th>Season</th>
+                        <th>Target Seed Start</th>
+                        <th>Target Transport Start</th>
+                        <th>Target Outdoor Seed Start</th>
+                        <th>Planting Option</th>
+                        <th>Sunlight</th>
+                        <th>Instructions</th>
+                        <th>Square Footage Needed</th>
+                        <th>Quantity Per Square Foot</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crop in crops %}
+                    <tr>
+                        <td><a href="{% url 'update_crop' crop.id %}">{{ crop.name }}</a></td>
+                        <td> {{ crop.variety }} </td>
+                        <td> {{ crop.source }} </td>
+                        <td> {{ crop.get_season_display }} </td>
+                        <td> {{ crop.target_seed_start }} </td>
+                        <td> {{ crop.target_transport_start }} </td>
+                        <td> {{ crop.target_seed_start_outdoors }} </td>
+                        <td> {{ crop.get_planting_op_display }} </td>
+                        <td> {{ crop.get_sunlight_display }} </td>
+                        <td> {{ crop.instructions }} </td>
+                        <td> {{ crop.square_footage_needed }} </td>
+                        <td> {{ crop.qty_per_square_foot }} </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="nav-plant" role="tabpanel" aria-labelledby="nav-plant-tab">
+            <table id="plants" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Crop</th>
+                        <th>Quantity</th>
+                        <th>Source</th>
+                        <th>Date to Plant</th>
+                        <th>Date to Transplant</th>
+                        <th>Date to Harvest</th>
+                        <th>Planting Option</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plant in plants %}
+                    <tr>
+                        <td><a href="{% url 'update_plant' plant.id %}">{{ plant.crop }}</a></td>
+                        <td> {{ plant.qty }} </td>
+                        <td> {{ plant.source }} </td>
+                        <td> {{ plant.date_planted }} </td>
+                        <td> {{ plant.date_to_transplant }} </td>
+                        <td> {{ plant.date_to_harvest }} </td>
+                        <td> {{ plant.get_planting_op_display }} </td>
+                        <td> {{ plant.location }} </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="nav-excel-crop" role="tabpanel" aria-labelledby="nav-excel-crop-tab">
+            <br>
+            Spreadsheet <a href="https://docs.google.com/spreadsheets/d/1eTPVqXKnBbfqmsRaT6Ung65bmJCR1U-AEZD3bmsCp6k/edit?usp=sharing">Template</a>
+            <br>
+            Source for template: <a href="https://gardeninminutes.com">Garden in Minutes</a>
+            <br> 
+            Upload Your Form: 
+            <form enctype="multipart/form-data" method="POST">
+                {% csrf_token %}
+                {{upload_form}}
+                <input class="btn btn-primary" type="submit" value="Submit">
+            </form>
+
+        </div>
+    </div>
+    
+    
+    <!-- Modal -->
+    <div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="cropModalLabel">Add New Crop</h1><br>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_crop" value="True">
+
+                    <div class="row">
+                        <div class="col">Name
+                            <input type="text" class="form-control" name="crop-name" style="width: 100%" required>
+                        </div>
+                    </div>
+
+                    <br>
+                    <button class="btn btn-outline-primary" style="width:100%" type="button" data-bs-toggle="collapse" data-bs-target="#opt-crop" aria-expanded="false" aria-controls="collapseExample">
+                        Optional Fields
+                    </button>
+
+                    
+                    <div class="collapse" id="opt-crop">
+                        <br>
+                        <div class="row">
+                            <div class="col">Variety
+                                <input type="text" class="form-control" name="crop-variety" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            <div class="col">Source
+                                <input type="text" class="form-control" name="crop-source" style="width: 100%">
+                            </div>
+                        </div>
+                        
+                        <br>
+                        <div class="row">
+                            <div class="col">Target Seed Start
+                                <input type="text" class="form-control" name="crop-target_seed_start" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            <div class="col">Target Transport Start
+                                <input type="text" class="form-control" name="crop-target_transport_start" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                Target Date to Seed Start Indoors<br>
+                                <input class="form-control" type="date" id="crop-seed" name="crop-target_seed_start">
+                            </div>
+
+                            <div class="col">
+                                Target Date to Transplant<br>
+                                <input class="form-control" type="date" id="crop-transport" name="crop-target_transport_start">
+                            </div>
+                        
+                            <div class="col">
+                                Target Date to Plant Outdoors<br>
+                                <input class="form-control" type="date" id="crop-seed" name=name="crop-target_seed_start_outdoors">
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            <div class="col">Instruction
+                                <input type="text" class="form-control" name="crop-instruction" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <br>
+                        Season<br>
+                        <div class="form-check" name="season">
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-season" value="1">Spring</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-season" value="2">Summer</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-season" value="3">Fall</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-season" value="4">Winter</input>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>Sunlight<br>
+                        <div class="form-check" name="sunlight">
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-sunlight" value="1">Full Sun</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-sunlight" value="2">Part Sun</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-sunlight" value="3">Part Shade</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-sunlight" value="4">Full Shade</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-sunlight" value="5">Dense Shade</input>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>Planting Options<br>
+                        <div class="form-check" name="planting_op">
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-planting_op" value="1">Direct Sow</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-planting_op" value="2">Indoor Start</input>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>Square Footage Needed<br>
+                        <div class="input-group">
+                            <input type="number" step=".01" class="form-control" value="0" name="crop-square_footage_needed"></input>
+                        </div>
+
+                        <br>Seed Quantity per Square Foot<br>
+                        <div class="input-group">
+                            <input type="number" step=".01" class="form-control" value="0" name="crop-qty_per_square_foot"></input>
+                        </div>
+                        
+                    </div>
+
+                    <br><br>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input class="btn btn-primary" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="plantModal" tabindex="-1" aria-labelledby="plantModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="plantModalLabel">Add New Plant</h1><br>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>A plant is a specific crop you plan to plant or are tracking in your garden.</p>
+                <br>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_plant" value="True">
+                    <br>
+                    <strong>Crop</strong><br>
+                    {% if crops %}
+                        <div class="form-check" name="crop">
+                            {% for crop in crops %}
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="crop-id" value="{{crop.id}}">{{crop.name}}</input>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <i>No crops in list, please add a crop to plant it.</i>
+                    {% endif %}
+
+                    <br><br>
+
+                    <button class="btn btn-outline-primary" style="width:100%" type="button" data-bs-toggle="collapse" data-bs-target="#opt-plant" aria-expanded="false" aria-controls="collapseExample">
+                        Optional Fields
+                    </button>
+                    
+                    <div class="collapse" id="opt-plant">
+                        <br>
+                        
+                        Quantity<br>
+                        <div class="input-group">
+                            <input type="number" step="1" class="form-control" value="0" name="plant-qty"></input>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            <div class="col">
+                                Date to Plant<br>
+                                <input class="form-control" type="date" id="plant-start" name="plant-date_planted">
+                            </div>
+
+                            <div class="col">
+                                Date to Transplant<br>
+                                <input class="form-control" type="date" id="plant-start" name="plant-date_to_transplant">
+                            </div>
+                        
+                            <div class="col">
+                                Date to Harvest<br>
+                                <input class="form-control" type="date" id="plant-end" name="plant-date_to_harvest">
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="row">
+                            <div class="col">Source
+                                <input type="text" class="form-control" name="plant-source" style="width: 100%">
+                            </div>
+                        </div>
+                        
+                        
+                        <br>
+                        <div class="row">
+                            <div class="col">Location
+                                <input type="text" class="form-control" name="plant-location" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <br>Planting Options<br>
+                        <div class="form-check" name="planting_op">
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="plant-planting_op" value="1">Direct Sow</input>
+                                </div>
+                                <div class="col">
+                                    <input class="form-check-input" type="radio" name="plant-planting_op" value="2">Indoor Start</input>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <br><br>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input class="btn btn-primary" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+        </div>
+    
+
+</body>
+{% endblock content %}
+>
